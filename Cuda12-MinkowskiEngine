@@ -1,13 +1,11 @@
-# Compiling MinkowskiEngine with CUDA 12
+# Compiling MinkowskiEngine with CUDA 12 [Ref from: https://github.com/NVIDIA/MinkowskiEngine/issues/543]
 
 ## 1. First, check your environment
-
 ```
 python -c "import sys; import torch; print('Python version:', sys.version); print('Torch version:', torch.__version__); print('Torch CUDA version:', torch.version.cuda); print('CUDA available:', torch.cuda.is_available());" && gcc --version | head -n 1 | cut -d' ' -f3
 ```
 
 ## 2. Modify shared pointer definition in `/usr/include/c++/11/bits/shared_ptr_base.h`
-
 Replace:
 ```
 auto __raw = __to_address(__r.get())
