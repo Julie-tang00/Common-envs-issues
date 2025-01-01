@@ -13,7 +13,7 @@ Replace:
 auto __raw = __to_address(__r.get())
 ```
 With:
-```cpp
+```
 auto __raw = std::__to_address(__r.get())
 ```
 
