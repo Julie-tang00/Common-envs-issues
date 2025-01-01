@@ -1,2 +1,69 @@
 # Common-envs-issues
 Just to document the environmental pitfalls I've encountered while training large models.
+
+
+# Compiling MinkowskiEngine with CUDA 12 [Ref from: https://github.com/NVIDIA/MinkowskiEngine/issues/543]
+
+## Step 1. First, check your environment
+```
+python -c "import sys; import torch; print('Python version:', sys.version); print('Torch version:', torch.__version__); print('Torch CUDA version:', torch.version.cuda); print('CUDA available:', torch.cuda.is_available());" && gcc --version | head -n 1 | cut -d' ' -f3
+```
+
+## Step 2. Modify shared pointer definition in `/usr/include/c++/11/bits/shared_ptr_base.h`
+Replace:
+```
+auto __raw = __to_address(__r.get())
+```
+With:
+```
+auto __raw = std::__to_address(__r.get())
+```
+
+## Step  3. Install dependencies
+```
+pip install --upgrade setuptools==59.8.0      # setuptools version must be lower than 60.0
+apt install build-essential python3-dev libopenblas-dev
+pip install ninja
+```
+
+## Step 4. Clone the MinkowskiEngine repository and install
+
+```
+git clone https://github.com/NVIDIA/MinkowskiEngine.git
+cd MinkowskiEngine
+python setup.py install
+```
+
+## Step 5. If the compilation fails, modify the following header files:
+
+1) **.../MinkowskiEngine/src/convolution_kernel.cuh**  
+   Add header:
+   ```
+   #include <thrust/execution_policy.h>
+   ```
+
+2) **.../MinkowskiEngine/src/coordinate_map_gpu.cu**  
+   Add headers:
+   ```
+   #include <thrust/unique.h>
+   #include <thrust/remove.h>
+   ```
+
+3) **.../MinkowskiEngine/src/spmm.cu**  
+   Add headers:
+   ```
+   #include <thrust/execution_policy.h>
+   #include <thrust/reduce.h>
+   #include <thrust/sort.h>
+   ```
+
+4) **.../MinkowskiEngine/src/3rdparty/concurrent_unordered_map.cuh**  
+   Add header:
+   ```
+   #include <thrust/execution_policy.h>
+   ```
+
+## Step 6. Finally, run the installation again
+```
+python setup.py install
+```
